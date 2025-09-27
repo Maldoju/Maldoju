@@ -8,3 +8,6 @@
 Maldoju/Maldoju is a ✨ special ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 You can click the Preview link to take a look at your changes.
 --->
+
+## Webapp
+Open `index.html` in a browser to explore the interactive STeeR strategy summary.
