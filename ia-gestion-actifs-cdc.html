@@ -1,0 +1,1526 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>L'IA dans la gestion d'actifs — Pour Laurence Giraudon, Caisse des Dépôts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..900,0..100&family=Manrope:wght@300..800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     DELOITTE × CDC — PRÉSENTATION IA GESTION D'ACTIFS
+     Conçue pour vidéoprojection 16:9, lisibilité maximale
+     ========================================================= */
+
+  :root{
+    --ink:#000000;
+    --paper:#ffffff;
+    --green:#86BC25;       /* Deloitte signature */
+    --green-deep:#43B02A;
+    --green-shadow:rgba(134,188,37,.12);
+    --grey-05:#fafafa;
+    --grey-10:#f2f2f2;
+    --grey-20:#e5e5e5;
+    --grey-40:#bdbdbd;
+    --grey-60:#6b6b6b;
+    --grey-80:#2a2a2a;
+    --serif:"Fraunces",ui-serif,Georgia,serif;
+    --sans:"Manrope",ui-sans-serif,system-ui,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,monospace;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#0a0a0a;overflow:hidden;font-family:var(--sans)}
+  body{display:grid;place-items:center}
+
+  /* ---------- Frame 16:9 ---------- */
+  .stage{
+    position:relative;
+    width:min(100vw, calc(100vh * 16/9));
+    height:min(100vh, calc(100vw * 9/16));
+    background:var(--paper);
+    overflow:hidden;
+    box-shadow:0 30px 100px rgba(0,0,0,.4);
+  }
+
+  /* Tout à l'intérieur se mesure en % (responsive auto) */
+  .slide{
+    position:absolute;inset:0;
+    padding:4.2% 5.5%;
+    opacity:0;pointer-events:none;
+    transition:opacity .45s ease;
+    display:flex;flex-direction:column;
+    background:var(--paper);
+  }
+  .slide.active{opacity:1;pointer-events:auto}
+
+  /* ---------- Chrome (nav, progress, brand) ---------- */
+  .brand{
+    position:absolute;top:2.5%;left:2.8%;
+    display:flex;align-items:center;gap:.6em;
+    font-family:var(--sans);font-weight:700;font-size:.85vw;
+    letter-spacing:.05em;text-transform:uppercase;color:var(--ink);
+    z-index:10;
+  }
+  .brand .dot{
+    width:.9em;height:.9em;background:var(--green);
+    display:inline-block;
+  }
+  .brand span.sep{color:var(--grey-40);margin:0 .3em;font-weight:400}
+  .brand span.ctx{color:var(--grey-60);font-weight:500}
+
+  .meta{
+    position:absolute;top:2.5%;right:2.8%;
+    font-family:var(--mono);font-size:.8vw;color:var(--grey-60);
+    z-index:10;letter-spacing:.02em;
+  }
+
+  .pagenum{
+    position:absolute;bottom:2.5%;right:2.8%;
+    font-family:var(--mono);font-size:.85vw;
+    color:var(--grey-60);z-index:10;
+    display:flex;align-items:center;gap:.4em;
+  }
+  .pagenum .cur{color:var(--ink);font-weight:500}
+  .pagenum .total{color:var(--grey-40)}
+
+  .progress{
+    position:absolute;bottom:0;left:0;right:0;height:3px;
+    background:var(--grey-20);z-index:10;
+  }
+  .progress > span{
+    display:block;height:100%;background:var(--green);
+    width:0;transition:width .4s ease;
+  }
+
+  /* Nav dots */
+  .navdots{
+    position:absolute;bottom:2.3%;left:50%;transform:translateX(-50%);
+    display:flex;gap:.45em;z-index:10;
+  }
+  .navdots button{
+    width:.55vw;height:.55vw;border-radius:50%;
+    background:var(--grey-20);border:none;cursor:pointer;padding:0;
+    transition:background .2s, transform .2s;
+  }
+  .navdots button:hover{background:var(--grey-40);transform:scale(1.3)}
+  .navdots button.active{background:var(--ink);transform:scale(1.3)}
+
+  /* Nav arrows */
+  .nav-arrow{
+    position:absolute;top:50%;transform:translateY(-50%);
+    background:transparent;border:1px solid var(--grey-20);
+    width:3.2vw;height:3.2vw;border-radius:50%;
+    display:grid;place-items:center;cursor:pointer;z-index:10;
+    transition:all .25s ease;
+    color:var(--grey-60);
+  }
+  .nav-arrow:hover{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+  .nav-arrow.prev{left:1.2%}
+  .nav-arrow.next{right:1.2%}
+  .nav-arrow svg{width:40%;height:40%}
+
+  /* ========================================================= */
+  /* Typographie                                                 */
+  /* ========================================================= */
+  .eyebrow{
+    font-family:var(--sans);font-weight:600;
+    font-size:1.15vw;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--green-deep);margin-bottom:1.5vw;
+    display:flex;align-items:center;gap:.8em;
+  }
+  .eyebrow::before{
+    content:"";width:1.8vw;height:2px;background:var(--green);
+    display:inline-block;
+  }
+
+  h1.hero{
+    font-family:var(--serif);font-weight:300;
+    font-variation-settings:"opsz" 144,"SOFT" 30;
+    font-size:7.2vw;line-height:.95;letter-spacing:-.03em;
+    color:var(--ink);
+  }
+  h1.hero em{font-style:italic;font-weight:300;color:var(--green-deep)}
+
+  h2.title{
+    font-family:var(--serif);font-weight:350;
+    font-variation-settings:"opsz" 144;
+    font-size:4.6vw;line-height:1;letter-spacing:-.025em;
+    color:var(--ink);margin-bottom:2.2vw;
+  }
+  h2.title em{font-style:italic;color:var(--green-deep);font-weight:400}
+
+  h3.sub{
+    font-family:var(--serif);font-weight:400;
+    font-size:2.4vw;line-height:1.1;letter-spacing:-.015em;
+  }
+
+  p.lede{
+    font-family:var(--serif);font-weight:300;
+    font-size:2.1vw;line-height:1.25;color:var(--grey-80);
+    max-width:85%;
+  }
+  p.body{
+    font-family:var(--sans);font-weight:400;
+    font-size:1.15vw;line-height:1.55;color:var(--grey-80);
+  }
+  p.small{
+    font-family:var(--sans);font-weight:400;
+    font-size:.9vw;line-height:1.5;color:var(--grey-60);
+  }
+
+  .mono{font-family:var(--mono);letter-spacing:-.01em}
+
+  /* ========================================================= */
+  /* S01 — Cover                                                 */
+  /* ========================================================= */
+  #s01{padding:0;overflow:hidden}
+  #s01 .cover{
+    position:absolute;inset:0;display:grid;
+    grid-template-rows:auto 1fr auto;padding:4.2% 5.5%;
+  }
+  #s01 .cover-top{
+    display:flex;justify-content:space-between;align-items:flex-start;
+  }
+  #s01 .cover-title{
+    align-self:end;
+  }
+  #s01 h1.hero{font-size:7.8vw}
+  #s01 .cover-foot{
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:2vw;
+    padding-top:2vw;border-top:1px solid var(--grey-20);
+  }
+  #s01 .foot-item .k{
+    font-family:var(--sans);font-weight:600;font-size:.75vw;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--green-deep);
+    margin-bottom:.5vw;
+  }
+  #s01 .foot-item .v{
+    font-family:var(--serif);font-weight:400;font-size:1.3vw;
+    line-height:1.3;color:var(--ink);
+  }
+  #s01 .accent-block{
+    position:absolute;right:0;top:18%;width:22%;height:54%;
+    background:var(--green);z-index:0;
+  }
+  #s01 .cover > *{position:relative;z-index:1}
+  #s01 .accent-num{
+    position:absolute;top:22%;right:4%;z-index:2;
+    font-family:var(--serif);font-weight:200;font-variation-settings:"opsz" 144;
+    font-size:18vw;line-height:.85;color:var(--paper);letter-spacing:-.04em;
+  }
+  #s01 .accent-cap{
+    position:absolute;top:62%;right:4%;z-index:2;
+    font-family:var(--sans);font-weight:600;font-size:.85vw;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--paper);
+    max-width:18%;line-height:1.3;
+  }
+
+  /* ========================================================= */
+  /* S02 — Thèse                                                 */
+  /* ========================================================= */
+  #s02 .grid{
+    display:grid;grid-template-columns:1.1fr .9fr;gap:4vw;flex:1;
+    align-items:center;
+  }
+  #s02 .thesis-viz{
+    position:relative;aspect-ratio:1/1;width:100%;
+  }
+  .timeline{
+    position:relative;width:100%;height:100%;
+  }
+  .timeline svg{width:100%;height:100%}
+  .timeline .pt{
+    position:absolute;transform:translate(-50%,-50%);
+    text-align:center;
+  }
+  .timeline .pt .year{
+    font-family:var(--mono);font-size:.85vw;color:var(--grey-60);
+    margin-bottom:.3vw;
+  }
+  .timeline .pt .lab{
+    font-family:var(--serif);font-size:1.1vw;line-height:1.15;
+    color:var(--ink);max-width:11vw;
+  }
+  .timeline .pt.hi .lab{color:var(--green-deep);font-weight:500}
+
+  /* ========================================================= */
+  /* S03 — 3 chiffres                                            */
+  /* ========================================================= */
+  #s03 .nums{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:2.5vw;flex:1;
+    align-items:center;
+  }
+  .bignum{
+    border-top:1px solid var(--ink);
+    padding-top:1.5vw;cursor:pointer;
+    transition:transform .3s ease;
+  }
+  .bignum:hover{transform:translateY(-.5vw)}
+  .bignum .n{
+    font-family:var(--serif);font-weight:200;
+    font-variation-settings:"opsz" 144;
+    font-size:8.5vw;line-height:.9;letter-spacing:-.04em;color:var(--ink);
+  }
+  .bignum .n em{color:var(--green-deep);font-style:normal}
+  .bignum .u{
+    font-family:var(--sans);font-weight:600;font-size:.9vw;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--grey-60);
+    margin-top:.6vw;
+  }
+  .bignum .d{
+    font-family:var(--serif);font-weight:400;font-size:1.5vw;
+    line-height:1.2;color:var(--ink);margin-top:.8vw;
+  }
+  .bignum .src{
+    font-family:var(--sans);font-weight:500;font-size:.8vw;
+    color:var(--grey-60);margin-top:.6vw;letter-spacing:.02em;
+  }
+
+  /* ========================================================= */
+  /* S04 — Cartographie 4 bassins                                */
+  /* ========================================================= */
+  #s04 .bassins{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:1.5vw;flex:1;
+    align-items:stretch;
+  }
+  .bassin{
+    background:var(--grey-05);
+    padding:2vw 1.8vw;
+    display:flex;flex-direction:column;justify-content:space-between;
+    border-top:4px solid var(--green);
+    transition:background .3s, transform .3s;
+    cursor:pointer;
+  }
+  .bassin:hover{background:var(--ink);color:var(--paper);transform:translateY(-.4vw)}
+  .bassin:hover .b-tag{color:var(--green)}
+  .bassin:hover .b-body, .bassin:hover .b-eg{color:rgba(255,255,255,.85)}
+  .b-tag{
+    font-family:var(--mono);font-size:.8vw;
+    letter-spacing:.1em;color:var(--green-deep);margin-bottom:1vw;
+  }
+  .b-title{
+    font-family:var(--serif);font-weight:400;font-size:1.9vw;
+    line-height:1.05;letter-spacing:-.01em;margin-bottom:1vw;
+  }
+  .b-body{
+    font-family:var(--sans);font-size:.95vw;line-height:1.5;
+    color:var(--grey-80);margin-bottom:1.5vw;flex:1;
+  }
+  .b-eg{
+    font-family:var(--sans);font-weight:500;font-size:.85vw;
+    color:var(--grey-60);border-top:1px solid var(--grey-20);
+    padding-top:.8vw;
+  }
+
+  /* ========================================================= */
+  /* Slide générique "case"                                      */
+  /* ========================================================= */
+  .case-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:4vw;flex:1;
+    align-items:center;
+  }
+  .case-left{display:flex;flex-direction:column;justify-content:center;gap:1.5vw}
+  .case-right{display:flex;flex-direction:column;gap:1.2vw}
+  .case-stat{
+    display:flex;align-items:baseline;gap:1vw;
+    border-bottom:1px solid var(--grey-20);padding:1vw 0;
+  }
+  .case-stat:last-child{border-bottom:none}
+  .case-stat .cs-n{
+    font-family:var(--serif);font-weight:300;font-size:3.4vw;
+    line-height:.9;color:var(--ink);letter-spacing:-.02em;
+    flex:0 0 auto;min-width:6.5vw;
+  }
+  .case-stat .cs-n em{color:var(--green-deep);font-style:normal}
+  .case-stat .cs-l{
+    font-family:var(--sans);font-size:1vw;line-height:1.35;color:var(--grey-80);
+  }
+  .case-tag{
+    display:inline-flex;align-items:center;gap:.6em;
+    padding:.5vw .9vw;background:var(--green-shadow);
+    color:var(--green-deep);
+    font-family:var(--sans);font-weight:600;font-size:.75vw;
+    letter-spacing:.15em;text-transform:uppercase;
+    align-self:flex-start;
+    border:1px solid var(--green);
+  }
+
+  .btn-deep{
+    display:inline-flex;align-items:center;gap:.6em;
+    margin-top:1.2vw;padding:.7vw 1.2vw;
+    background:var(--ink);color:var(--paper);
+    font-family:var(--sans);font-weight:600;font-size:.85vw;
+    letter-spacing:.08em;text-transform:uppercase;
+    border:none;cursor:pointer;transition:all .2s;
+    align-self:flex-start;
+  }
+  .btn-deep:hover{background:var(--green-deep)}
+  .btn-deep svg{width:1em;height:1em}
+
+  /* ========================================================= */
+  /* S_agents — timeline d'agents                                */
+  /* ========================================================= */
+  #s_agents .grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:4vw;flex:1;align-items:center;
+  }
+  .agent-wave{
+    display:flex;flex-direction:column;gap:1.5vw;
+  }
+  .agent-row{
+    display:grid;grid-template-columns:6vw 1fr;gap:1.5vw;align-items:center;
+  }
+  .agent-bar{height:3vw;background:var(--grey-10);position:relative;overflow:hidden}
+  .agent-bar > span{
+    position:absolute;inset:0;background:var(--green);
+    transform-origin:left;
+  }
+  .agent-row .yr{
+    font-family:var(--mono);font-size:1vw;color:var(--ink);font-weight:500;
+  }
+  .agent-row .lab{
+    font-family:var(--serif);font-size:1.15vw;line-height:1.25;
+    color:var(--ink);margin-top:.4vw;
+  }
+  .agent-row .pct{
+    position:absolute;right:1vw;top:50%;transform:translateY(-50%);
+    font-family:var(--mono);font-size:.9vw;font-weight:500;color:var(--paper);
+  }
+  .agent-row:first-child .pct,
+  .agent-row:nth-child(2) .pct{color:var(--ink)}
+
+  /* ========================================================= */
+  /* S_stack — stack souveraineté                                */
+  /* ========================================================= */
+  #s_stack .stack{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:1.2vw;flex:1;
+    align-items:stretch;
+  }
+  .stack-col{
+    padding:2vw 1.8vw;background:var(--grey-05);display:flex;
+    flex-direction:column;justify-content:space-between;
+    border-left:3px solid var(--green);
+    transition:all .3s;
+  }
+  .stack-col:hover{background:var(--green);color:var(--paper)}
+  .stack-col:hover .sc-lab{color:var(--ink)}
+  .stack-col:hover .sc-n{color:var(--ink)}
+  .sc-lab{
+    font-family:var(--mono);font-size:.8vw;letter-spacing:.08em;
+    color:var(--green-deep);margin-bottom:1vw;
+  }
+  .sc-t{
+    font-family:var(--serif);font-weight:400;font-size:1.7vw;line-height:1.1;
+    letter-spacing:-.01em;margin-bottom:.8vw;
+  }
+  .sc-n{
+    font-family:var(--serif);font-weight:300;font-size:3.2vw;
+    line-height:.95;color:var(--green-deep);margin-bottom:.8vw;
+  }
+  .sc-d{
+    font-family:var(--sans);font-size:.9vw;line-height:1.5;color:var(--grey-80);
+  }
+
+  /* ========================================================= */
+  /* S_reg — régulation timeline                                 */
+  /* ========================================================= */
+  .reg-ribbon{
+    display:flex;flex:1;align-items:center;gap:0;margin-top:2vw;
+  }
+  .reg-stop{
+    flex:1;padding:1.5vw 1.3vw;border-left:3px solid var(--ink);
+    display:flex;flex-direction:column;gap:.6vw;
+    min-height:22vw;
+    position:relative;
+  }
+  .reg-stop.done{border-color:var(--grey-40);opacity:.75}
+  .reg-stop.now{border-color:var(--green);background:var(--green-shadow)}
+  .reg-stop .rs-d{
+    font-family:var(--mono);font-size:.85vw;color:var(--grey-60);
+    font-weight:500;
+  }
+  .reg-stop.now .rs-d{color:var(--green-deep);font-weight:600}
+  .reg-stop .rs-t{
+    font-family:var(--serif);font-weight:400;font-size:1.3vw;line-height:1.15;
+    color:var(--ink);
+  }
+  .reg-stop .rs-b{
+    font-family:var(--sans);font-size:.85vw;line-height:1.45;color:var(--grey-80);
+    flex:1;
+  }
+  .reg-stop .rs-src{
+    font-family:var(--sans);font-size:.7vw;color:var(--grey-60);
+    font-style:italic;
+  }
+
+  /* ========================================================= */
+  /* S_risks — 3 angles morts                                    */
+  /* ========================================================= */
+  .risk-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:2vw;flex:1;
+    align-items:stretch;
+  }
+  .risk{
+    background:var(--paper);border:1px solid var(--ink);
+    padding:2vw;display:flex;flex-direction:column;
+    position:relative;
+  }
+  .risk .rnum{
+    font-family:var(--serif);font-weight:200;font-size:5vw;line-height:1;
+    color:var(--green);letter-spacing:-.03em;margin-bottom:1vw;
+  }
+  .risk .rt{
+    font-family:var(--serif);font-weight:400;font-size:1.8vw;line-height:1.1;
+    margin-bottom:1vw;
+  }
+  .risk .rb{
+    font-family:var(--sans);font-size:.95vw;line-height:1.5;color:var(--grey-80);
+    flex:1;
+  }
+  .risk .rdata{
+    font-family:var(--mono);font-size:.9vw;color:var(--ink);
+    padding:.8vw 0;border-top:1px solid var(--grey-20);margin-top:1.2vw;
+  }
+  .risk .rdata strong{color:var(--green-deep);font-weight:600}
+
+  /* ========================================================= */
+  /* S_cdc — actionable for CDC                                  */
+  /* ========================================================= */
+  #s_cdc .cdc-grid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:1.2vw;flex:1;
+    align-items:stretch;
+  }
+  .lever{
+    padding:1.8vw;background:var(--grey-05);
+    display:flex;flex-direction:column;gap:.8vw;
+    border-top:4px solid var(--ink);
+    transition:all .3s;
+  }
+  .lever:hover{background:var(--ink);color:var(--paper);border-top-color:var(--green)}
+  .lever:hover .lv-n{color:var(--green)}
+  .lever:hover .lv-b,.lever:hover .lv-src{color:rgba(255,255,255,.85)}
+  .lv-n{
+    font-family:var(--mono);font-size:.85vw;color:var(--green-deep);
+    letter-spacing:.1em;font-weight:500;
+  }
+  .lv-t{
+    font-family:var(--serif);font-weight:400;font-size:1.55vw;line-height:1.1;
+  }
+  .lv-b{
+    font-family:var(--sans);font-size:.9vw;line-height:1.5;color:var(--grey-80);
+    flex:1;
+  }
+  .lv-src{
+    font-family:var(--sans);font-size:.75vw;color:var(--grey-60);
+    font-weight:500;border-top:1px solid var(--grey-20);padding-top:.7vw;
+  }
+
+  /* ========================================================= */
+  /* Final slide                                                 */
+  /* ========================================================= */
+  #s_final .grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:4vw;flex:1;
+    align-items:center;
+  }
+  #s_final .q{
+    font-family:var(--serif);font-weight:300;font-size:4.4vw;line-height:1.05;
+    letter-spacing:-.02em;color:var(--ink);
+  }
+  #s_final .q em{font-style:italic;color:var(--green-deep)}
+  .duet{
+    display:grid;grid-template-columns:1fr 1fr;gap:2vw;
+  }
+  .duet-col{padding:1.5vw;background:var(--grey-05)}
+  .duet-col.bad{border-left:3px solid var(--grey-40)}
+  .duet-col.good{border-left:3px solid var(--green);background:#f5faf0}
+  .duet-col .dl{
+    font-family:var(--mono);font-size:.8vw;letter-spacing:.1em;
+    color:var(--grey-60);margin-bottom:.8vw;
+  }
+  .duet-col.good .dl{color:var(--green-deep)}
+  .duet-col .dn{
+    font-family:var(--serif);font-weight:300;font-size:3.5vw;line-height:.9;
+    color:var(--ink);margin-bottom:.8vw;
+  }
+  .duet-col.good .dn{color:var(--green-deep)}
+  .duet-col .db{
+    font-family:var(--sans);font-size:.9vw;line-height:1.4;color:var(--grey-80);
+  }
+
+  /* ========================================================= */
+  /* Modal (drill-down)                                          */
+  /* ========================================================= */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.6);
+    backdrop-filter:blur(6px);z-index:1000;
+    display:none;align-items:center;justify-content:center;
+    opacity:0;transition:opacity .25s ease;
+  }
+  .modal-overlay.open{display:flex;opacity:1}
+  .modal{
+    width:min(70vw, calc(70vh * 16/9));
+    max-height:86vh;
+    background:var(--paper);
+    padding:3vw 3.5vw;
+    overflow-y:auto;
+    position:relative;
+    transform:translateY(20px);
+    transition:transform .35s cubic-bezier(.2,.9,.3,1);
+    border-top:6px solid var(--green);
+  }
+  .modal-overlay.open .modal{transform:translateY(0)}
+  .modal-close{
+    position:absolute;top:1.5vw;right:1.5vw;
+    width:2.5vw;height:2.5vw;border-radius:50%;
+    border:1px solid var(--grey-20);background:var(--paper);
+    cursor:pointer;display:grid;place-items:center;
+    transition:all .2s;
+  }
+  .modal-close:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .modal-close svg{width:45%;height:45%}
+  .modal h3{
+    font-family:var(--serif);font-weight:400;font-size:2.4vw;line-height:1.05;
+    letter-spacing:-.015em;margin-bottom:.5vw;color:var(--ink);
+  }
+  .modal .m-eye{
+    font-family:var(--mono);font-size:.85vw;letter-spacing:.1em;
+    color:var(--green-deep);text-transform:uppercase;margin-bottom:1vw;
+  }
+  .modal .m-lede{
+    font-family:var(--serif);font-weight:300;font-size:1.4vw;line-height:1.3;
+    color:var(--grey-80);margin-bottom:1.8vw;
+    padding-bottom:1.5vw;border-bottom:1px solid var(--grey-20);
+  }
+  .modal .m-body{
+    font-family:var(--sans);font-size:1vw;line-height:1.65;color:var(--grey-80);
+    margin-bottom:1vw;
+  }
+  .modal .m-body strong{color:var(--ink);font-weight:600}
+  .modal .m-stats{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:1.5vw;
+    margin:1.5vw 0;padding:1.5vw 0;
+    border-top:1px solid var(--grey-20);border-bottom:1px solid var(--grey-20);
+  }
+  .modal .m-stat .ms-n{
+    font-family:var(--serif);font-weight:300;font-size:2.6vw;line-height:.95;
+    color:var(--green-deep);
+  }
+  .modal .m-stat .ms-l{
+    font-family:var(--sans);font-size:.85vw;line-height:1.35;color:var(--grey-60);
+    margin-top:.4vw;
+  }
+  .modal .m-src{
+    font-family:var(--sans);font-size:.8vw;color:var(--grey-60);
+    font-style:italic;margin-top:1vw;
+  }
+
+  /* Hint click pour détail */
+  .hint-click{
+    position:absolute;top:3%;right:3%;
+    font-family:var(--mono);font-size:.75vw;color:var(--grey-60);
+    display:flex;align-items:center;gap:.5em;
+    padding:.4vw .8vw;border:1px dashed var(--grey-40);
+    border-radius:100px;
+  }
+  .hint-click .pulse{
+    width:.5vw;height:.5vw;border-radius:50%;background:var(--green);
+    animation:pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:1;transform:scale(1)}
+    50%{opacity:.4;transform:scale(1.4)}
+  }
+
+  /* Reveal animations pour slide active */
+  .slide.active .reveal{
+    animation:reveal .7s ease-out both;
+  }
+  .slide.active .reveal-1{animation-delay:.08s}
+  .slide.active .reveal-2{animation-delay:.18s}
+  .slide.active .reveal-3{animation-delay:.28s}
+  .slide.active .reveal-4{animation-delay:.38s}
+  .slide.active .reveal-5{animation-delay:.48s}
+  .slide.active .reveal-6{animation-delay:.58s}
+  @keyframes reveal{
+    from{opacity:0;transform:translateY(12px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  /* Responsive fallback pour très petits écrans */
+  @media (max-aspect-ratio: 16/9) and (max-width:900px){
+    .stage{width:100vw;height:56.25vw}
+  }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+
+  <!-- Brand / chrome -->
+  <div class="brand">
+    <span class="dot"></span>
+    <span>Deloitte</span>
+    <span class="sep">×</span>
+    <span class="ctx">Caisse des Dépôts</span>
+  </div>
+  <div class="meta">IA × Gestion d'actifs / Avril 2026</div>
+  <div class="pagenum"><span class="cur">01</span><span class="total">/ 16</span></div>
+
+  <!-- Nav arrows -->
+  <button class="nav-arrow prev" id="prev" aria-label="Précédent">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+  </button>
+  <button class="nav-arrow next" id="next" aria-label="Suivant">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+  </button>
+
+  <!-- Progress -->
+  <div class="progress"><span id="progBar"></span></div>
+  <div class="navdots" id="navdots"></div>
+
+  <!-- ================================================= -->
+  <!-- SLIDE 01 — COVER                                    -->
+  <!-- ================================================= -->
+  <section class="slide active" id="s01" data-title="Couverture">
+    <div class="cover">
+      <div class="accent-block"></div>
+      <div class="accent-num">24</div>
+      <div class="accent-cap">mois qui ont tout basculé, du pilote à l'infrastructure</div>
+
+      <div class="cover-top">
+        <div class="eyebrow reveal reveal-1">Briefing exécutif — 30 minutes</div>
+        <div></div>
+      </div>
+
+      <div class="cover-title">
+        <h1 class="hero reveal reveal-2">
+          L'IA dans la<br/>gestion d'actifs.<br/><em>Ce qui a changé.</em>
+        </h1>
+      </div>
+
+      <div class="cover-foot reveal reveal-3">
+        <div class="foot-item">
+          <div class="k">Pour</div>
+          <div class="v">Laurence Giraudon<br/><span style="color:var(--grey-60);font-size:.9em">Directrice Finance & Opérations<br/>Direction des Gestions d'Actifs</span></div>
+        </div>
+        <div class="foot-item">
+          <div class="k">De</div>
+          <div class="v">Deloitte France<br/><span style="color:var(--grey-60);font-size:.9em">FSI — Strategy & Business Design</span></div>
+        </div>
+        <div class="foot-item">
+          <div class="k">Objet</div>
+          <div class="v">Cartographie des progrès concrets<br/><span style="color:var(--grey-60);font-size:.9em">2024 — 2026 · front, middle et back</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================= -->
+  <!-- SLIDE 02 — THÈSE CENTRALE                           -->
+  <!-- ================================================= -->
+  <section class="slide" id="s02" data-title="Thèse">
+    <div class="eyebrow reveal reveal-1">Le point de départ</div>
+    <div class="grid">
+      <div>
+        <h2 class="title reveal reveal-2">Un basculement<br/><em>silencieux.</em></h2>
+        <p class="lede reveal reveal-3" style="font-size:1.9vw;margin-top:1.5vw">
+          En 24 mois, l'IA est passée du pilote isolé à la plateforme intégrée.
+          Pas d'effet d'annonce — mais des chaînes opérationnelles entières
+          qui changent de nature, du gérant au comptable fonds.
+        </p>
+        <p class="body reveal reveal-4" style="margin-top:2vw;max-width:90%;color:var(--grey-60)">
+          McKinsey chiffre l'adoption régulière de l'IA générative à <strong style="color:var(--ink)">78% des organisations mi‑2025</strong>, contre 33% deux ans plus tôt.
+          La gestion d'actifs suit, et parfois dépasse, cette courbe.
+        </p>
+      </div>
+      <div class="thesis-viz reveal reveal-5">
+        <div class="timeline">
+          <svg viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                <path d="M0,0 L10,5 L0,10 z" fill="#000"/>
+              </marker>
+            </defs>
+            <!-- Axe -->
+            <line x1="50" y1="350" x2="370" y2="50" stroke="#000" stroke-width="1.5" marker-end="url(#arr)"/>
+            <!-- Points -->
+            <circle cx="80" cy="330" r="6" fill="#bdbdbd"/>
+            <circle cx="175" cy="240" r="6" fill="#bdbdbd"/>
+            <circle cx="255" cy="165" r="8" fill="#86BC25"/>
+            <circle cx="340" cy="80" r="10" fill="#000"/>
+            <!-- Labels -->
+            <text x="50" y="380" font-family="JetBrains Mono" font-size="11" fill="#6b6b6b">ADOPTION / INTÉGRATION</text>
+          </svg>
+          <div class="pt" style="left:20%;top:85%">
+            <div class="year">2022</div>
+            <div class="lab">Pilotes dispersés, preuves de concept</div>
+          </div>
+          <div class="pt" style="left:43%;top:62%">
+            <div class="year">2024</div>
+            <div class="lab">Premiers copilotes à l'échelle</div>
+          </div>
+          <div class="pt hi" style="left:64%;top:42%">
+            <div class="year">2025</div>
+            <div class="lab">Plateformes unifiées & MLOps</div>
+          </div>
+          <div class="pt hi" style="left:85%;top:22%">
+            <div class="year">2026</div>
+            <div class="lab"><strong>Agents autonomes</strong> en production</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================= -->
+  <!-- SLIDE 03 — TROIS CHIFFRES                           -->
+  <!-- ================================================= -->
+  <section class="slide" id="s03" data-title="3 chiffres">
+    <div class="eyebrow reveal reveal-1">Trois chiffres qui disent tout</div>
+    <h2 class="title reveal reveal-2" style="margin-bottom:1vw">Ordres de grandeur<br/><em>2024 — 2026.</em></h2>
+    <p class="body reveal reveal-3" style="margin-bottom:3vw;color:var(--grey-60);max-width:75%">
+      Sélectionnés dans des déploiements en production, documentés publiquement, pour trois maturités très différentes.
+    </p>
+    <div class="nums">
+      <div class="bignum reveal reveal-4" data-modal="m-nbim">
+        <div class="n"><em>213k</em></div>
+        <div class="u">Heures économisées / an</div>
+        <div class="d">par le fonds souverain norvégien (NBIM), soit environ <strong>100 M$ de coûts de trading évités</strong>.</div>
+        <div class="src">Source : NBIM, Top1000funds, 2025</div>
+      </div>
+      <div class="bignum reveal reveal-5" data-modal="m-hsbc">
+        <div class="n">−<em>60</em>%</div>
+        <div class="u">Faux positifs en LCB-FT</div>
+        <div class="d">chez HSBC avec la plateforme Dynamic Risk Assessment, pour <strong>1 Md de transactions / mois</strong>.</div>
+        <div class="src">Source : Google Cloud, HSBC, 2024</div>
+      </div>
+      <div class="bignum reveal reveal-6" data-modal="m-bny">
+        <div class="n"><em>20k</em></div>
+        <div class="u">Assistants IA déployés</div>
+        <div class="d">par BNY sur sa plateforme Eliza, avec <strong>125 cas d'usage en production</strong> et 98% de collaborateurs formés.</div>
+        <div class="src">Source : BNY, OpenAI, 2025-2026</div>
+      </div>
+    </div>
+    <p class="small reveal reveal-6" style="margin-top:2vw;text-align:center;color:var(--grey-60);font-style:italic">
+      Cliquez sur un chiffre pour le détail.
+    </p>
+  </section>
+
+  <!-- ================================================= -->
+  <!-- SLIDE 04 — CARTOGRAPHIE 4 BASSINS                   -->
+  <!-- ================================================= -->
+  <section class="slide" id="s04" data-title="Cartographie">
+    <div class="eyebrow reveal reveal-1">Où l'IA crée de la valeur</div>
+    <h2 class="title reveal reveal-2">Quatre bassins,<br/><em>une même infrastructure.</em></h2>
+    <p class="body reveal reveal-3" style="margin-bottom:2.5vw;color:var(--grey-60);max-width:70%">
+      La même pile technique — un LLM, des données maison, un orchestrateur — sert désormais des cas d'usage qui, hier, appartenaient à des mondes séparés.
+    </p>
+    <div class="bassins">
+      <div class="bassin reveal reveal-3">
+        <div>
+          <div class="b-tag">FRONT — 01</div>
+          <div class="b-title">Génération d'alpha & recherche</div>
+          <div class="b-body">Machine learning quantitatif, signal extraction, détection de biais des gérants, prévision macro.</div>
+        </div>
+        <div class="b-eg">NBIM · Man AHL · Bridgewater · Two Sigma</div>
+      </div>
+      <div class="bassin reveal reveal-4">
+        <div>
+          <div class="b-tag">FRONT — 02</div>
+          <div class="b-title">Assistant du gérant</div>
+          <div class="b-body">Synthèse de recherche, note de crédit ESG, brief de reporting, recherche sur portefeuilles existants.</div>
+        </div>
+        <div class="b-eg">BlackRock Asimov · Morgan Stanley · AXA IM · Goldman Sachs</div>
+      </div>
+      <div class="bassin reveal reveal-5">
+        <div>
+          <div class="b-tag">MIDDLE — 03</div>
+          <div class="b-title">Risque & conformité</div>
+          <div class="b-body">Détection de blanchiment, KYC, contrôle d'anomalies NAV, revue réglementaire automatisée.</div>
+        </div>
+        <div class="b-eg">HSBC · Google Cloud AML AI · ComplyAdvantage</div>
+      </div>
+      <div class="bassin reveal reveal-6">
+        <div>
+          <div class="b-tag">BACK — 04</div>
+          <div class="b-title">Opérations & documentaire</div>
+          <div class="b-body">Revue contractuelle, corporate actions, réconciliations, prospectus, term sheets dérivés.</div>
+        </div>
+        <div class="b-eg">BNY Eliza · BlackRock eFront · JPMorgan Athena</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================= -->
+  <!-- SLIDE 05 — NBIM                                     -->
+  <!-- ================================================= -->
+  <section class="slide" id="s05" data-title="NBIM">
+    <div class="eyebrow reveal reveal-1">Front-office · Cas n°1 · Génération d'alpha</div>
+    <div class="case-grid">
+      <div class="case-left">
+        <div class="case-tag reveal reveal-2">Norges Bank Investment Management · 2 200 Md$</div>
+        <h2 class="title reveal reveal-3" style="margin-bottom:1.5vw">
+          Le fonds souverain qui<br/>a appris à <em>se relire.</em>
+        </h2>
+        <p class="body reveal reveal-4" style="max-width:95%">
+          NBIM a mis en production un <strong>Investment Simulator</strong> qui repasse chaque décision des gérants
+          internes et externes à la moulinette du ML. Objectif : identifier les biais comportementaux — timing, taille
+          de position, comportement en drawdown — et recalibrer les allocations.
+        </p>
+        <p class="body reveal reveal-5" style="max-width:95%;margin-top:1vw;color:var(--grey-60)">
+          Les gérants doués pour le market timing reçoivent la suggestion de tailler plus grand. Ceux qui détruisent de
+          la valeur à la négociation reçoivent le conseil inverse. L'IA n'exécute pas, elle éclaire.
+        </p>
+        <button class="btn-deep reveal reveal-6" data-modal="m-nbim">
+          Voir le détail du cas
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="case-right">
+        <div class="case-stat reveal reveal-4">
+          <div class="cs-n"><em>213k</em></div>
+          <div class="cs-l"><strong>heures économisées par an</strong><br/>sur l'ensemble des opérations.</div>
+        </div>
+        <div class="case-stat reveal reveal-5">
+          <div class="cs-n"><em>100</em>M$</div>
+          <div class="cs-l"><strong>de coûts de trading évités</strong> annuellement, revendiqués par Nicolai Tangen.</div>
+        </div>
+        <div class="case-stat reveal reveal-6">
+          <div class="cs-n"><em>400</em>M$</div>
+          <div class="cs-l"><strong>cible d'économies</strong> annuelle à horizon programme complet.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================= -->
+  <!-- SLIDE 06 — Man AHL / Bridgewater                    -->
+  <!-- ================================================= -->
+  <section class="slide" id="s06" data-title="Quant">
+    <div class="eyebrow reveal reveal-1">Front-office · Cas n°2 · Quant avancé</div>
+    <div class="case-grid">
+      <div class="case-left">
+        <div class="case-tag reveal reveal-2">Man Group AHL · Bridgewater</div>
+        <h2 class="title reveal reveal-3" style="margin-bottom:1.5vw">
+          La frontière<br/>de l'<em>alpha algorithmique.</em>
+        </h2>
+        <p class="body reveal reveal-4" style="max-width:95%">
+          Man AHL trade du machine learning en production depuis 2014. Ce qui change en 2025 :
+          le <strong>partenariat avec Anthropic étend l'IA au-delà de l'efficacité — vers la génération d'alpha
+          directe</strong>, sur l'augmentation de données et le feature engineering.
+        </p>
+        <p class="body reveal reveal-5" style="max-width:95%;margin-top:1vw;color:var(--grey-60)">
+          En parallèle, Bridgewater a formalisé son <strong>Artificial Investment Associate</strong> — un gérant
+          synthétique qui combine macro, signaux de marché et narratifs extraits de la presse. Un changement
+          culturel : les fonds les plus défiants envers l'IA l'intègrent désormais au cœur de l'investissement.
+        </p>
+        <button class="btn-deep reveal reveal-6" data-modal="m-manahl">
+          Voir le détail du cas
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="case-right">
+        <div class="case-stat reveal reveal-4">
+          <div class="cs-n"><em>1,5</em>Md</div>
+          <div class="cs-l"><strong>de ticks de marché ingérés par jour</strong> par les modèles ML de Man AHL.</div>
+        </div>
+        <div class="case-stat reveal reveal-5">
+          <div class="cs-n"><em>2014</em></div>
+          <div class="cs-l">Première mise en production ML chez Man AHL, <strong>avant-gardistes depuis une décennie</strong>.</div>
+        </div>
+        <div class="case-stat reveal reveal-6">
+          <div class="cs-n"><em>2025</em></div>
+          <div class="cs-l">Pivot d'Anthropic × Man : <strong>de l'efficacité opérationnelle à l'alpha</strong>.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================= -->
+  <!-- SLIDE 07 — BlackRock + Goldman + AXA                -->
+  <!-- ================================================= -->
+  <section class="slide" id="s07" data-title="Copilotes">
+    <div class="eyebrow reveal reveal-1">Front-office · Cas n°3 · L'assistant universel</div>
+    <h2 class="title reveal reveal-2">Un copilote<br/><em>pour chaque gérant.</em></h2>
+    <p class="body reveal reveal-3" style="max-width:75%;color:var(--grey-60);margin-bottom:2vw">
+      Trois acteurs, trois stratégies convergentes : un LLM interfacé aux données maison, entraîné sur la recherche propriétaire, accessible depuis Teams ou Slack.
+    </p>
+    <div class="bassins" style="grid-template-columns:repeat(4,1fr)">
+      <div class="bassin reveal reveal-3">
+        <div>
+          <div class="b-tag">BlackRock</div>
+          <div class="b-title" style="font-size:1.65vw">Asimov + Aladdin Copilot</div>
+          <div class="b-body">Scan continu des notes, dépôts SEC, emails internes. Larry Fink revendique <strong>2 000 Md$ d'AuM ajoutés à effectif quasi stable</strong>.</div>
+        </div>
+        <div class="b-eg">En production depuis 2023–2024</div>
+      </div>
+      <div class="bassin reveal reveal-4">
+        <div>
+          <div class="b-tag">Goldman Sachs</div>
+          <div class="b-title" style="font-size:1.65vw">GS AI Assistant</div>
+          <div class="b-body">Passé de 10 000 utilisateurs en janvier 2025 à <strong>45 000 collaborateurs en juin</strong>. Rédaction, recherche, code, synthèse de dépôts.</div>
+        </div>
+        <div class="b-eg">Ouvert à toute la firme · 2025</div>
+      </div>
+      <div class="bassin reveal reveal-5">
+        <div>
+          <div class="b-tag">AXA IM Core</div>
+          <div class="b-title" style="font-size:1.65vw">ESG Credit Research Tool</div>
+          <div class="b-body">Construit sur SecureGPT, <strong>synthétise la recherche ESG</strong> et produit des notes de crédit ESG sur mesure par émetteur.</div>
+        </div>
+        <div class="b-eg">Production · 2024</div>
+      </div>
+      <div class="bassin reveal reveal-6">
+        <div>
+          <div class="b-tag">Morgan Stanley</div>
+          <div class="b-title" style="font-size:1.65vw">AI @ Morgan Stanley</div>
+          <div class="b-body">L'assistant rend <strong>10 à 15 heures par semaine</strong> au conseiller patrimonial en automatisant la préparation de rendez-vous.</div>
+        </div>
+        <div class="b-eg">Généralisation · 2024</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================= -->
+  <!-- SLIDE 08 — HSBC (middle)                            -->
+  <!-- ================================================= -->
+  <section class="slide" id="s08" data-title="HSBC">
+    <div class="eyebrow reveal reveal-1">Middle-office · Cas n°4 · Conformité industrielle</div>
+    <div class="case-grid">
+      <div class="case-left">
+        <div class="case-tag reveal reveal-2">HSBC × Google Cloud — AML AI</div>
+        <h2 class="title reveal reveal-3" style="margin-bottom:1.5vw">
+          La lutte anti-blanchiment<br/>a changé d'<em>échelle.</em>
+        </h2>
+        <p class="body reveal reveal-4" style="max-width:95%">
+          HSBC a co-développé puis commercialisé avec Google Cloud la plateforme <strong>Dynamic Risk Assessment</strong>.
+          L'approche change radicalement : on remplace la logique de règles rigides par un <strong>score de risque
+          dynamique et explicable</strong>, calibré en continu.
+        </p>
+        <p class="body reveal reveal-5" style="max-width:95%;margin-top:1vw;color:var(--grey-60)">
+          Le délai d'investigation d'un cas est passé de plusieurs semaines à 8 jours. Le dispositif est désormais
+          reproduit chez Banco Bradesco, Lunar et d'autres. Le cas école : l'IA non pas pour remplacer la conformité,
+          mais pour la rendre <em>effective</em>.
+        </p>
+        <button class="btn-deep reveal reveal-6" data-modal="m-hsbc">
+          Voir le détail du cas
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="case-right">
+        <div class="case-stat reveal reveal-4">
+          <div class="cs-n"><em>1</em>Md</div>
+          <div class="cs-l"><strong>transactions analysées par mois</strong>, en temps proche du temps réel.</div>
+        </div>
+        <div class="case-stat reveal reveal-5">
+          <div class="cs-n"><em>2-4</em>×</div>
+          <div class="cs-l"><strong>plus d'activités suspectes détectées</strong> qu'avec les systèmes à base de règles.</div>
+        </div>
+        <div class="case-stat reveal reveal-6">
+          <div class="cs-n">−<em>60</em>%</div>
+          <div class="cs-l"><strong>de faux positifs</strong> — c'est-à-dire d'enquêtes inutiles consommant des équipes entières.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================= -->
+  <!-- SLIDE 09 — BNY Eliza (back)                         -->
+  <!-- ================================================= -->
+  <section class="slide" id="s09" data-title="BNY">
+    <div class="eyebrow reveal reveal-1">Back-office · Cas n°5 · L'usine à assistants</div>
+    <div class="case-grid">
+      <div class="case-left">
+        <div class="case-tag reveal reveal-2">Bank of New York Mellon — Plateforme Eliza</div>
+        <h2 class="title reveal reveal-3" style="margin-bottom:1.5vw">
+          Quand la banque dépositaire<br/>devient un <em>éditeur de logiciels.</em>
+        </h2>
+        <p class="body reveal reveal-4" style="max-width:95%">
+          BNY a formalisé en 2024 une plateforme interne qui permet à n'importe quel collaborateur de créer son assistant.
+          Résultat : <strong>125 cas d'usage en production</strong>, des délais de développement qui passent de 18 mois à
+          quelques semaines, et un ratio "builders / utilisateurs" qui redessine l'organisation.
+        </p>
+        <p class="body reveal reveal-5" style="max-width:95%;margin-top:1vw;color:var(--grey-60)">
+          Le cas archétypal : la <strong>revue contractuelle</strong> qui passe de <strong>4 heures à 1 heure</strong> par
+          contrat, sur 3 000 contrats par an. C'est-à-dire 9 000 heures rendues aux juristes chaque année, sans licenciement.
+        </p>
+        <button class="btn-deep reveal reveal-6" data-modal="m-bny">
+          Voir le détail du cas
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="case-right">
+        <div class="case-stat reveal reveal-4">
+          <div class="cs-n"><em>20</em>k</div>
+          <div class="cs-l"><strong>collaborateurs "builders"</strong> qui ont créé au moins un assistant.</div>
+        </div>
+        <div class="case-stat reveal reveal-5">
+          <div class="cs-n"><em>98</em>%</div>
+          <div class="cs-l"><strong>de la force de travail formée</strong> à l'IA générative — un prérequis à la plateforme.</div>
+        </div>
+        <div class="case-stat reveal reveal-6">
+          <div class="cs-n"><em>4h → 1h</em></div>
+          <div class="cs-l"><strong>par contrat</strong>, sur 3 000 contrats annuels. La productivité par effet de masse.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================= -->
+  <!-- SLIDE 10 — BNP Paribas (voie européenne)            -->
+  <!-- ================================================= -->
+  <section class="slide" id="s10" data-title="BNP Paribas">
+    <div class="eyebrow reveal reveal-1">La voie européenne · Cas n°6 · Souveraineté + proportionnalité</div>
+    <div class="case-grid">
+      <div class="case-left">
+        <div class="case-tag reveal reveal-2">BNP Paribas × Mistral AI</div>
+        <h2 class="title reveal reveal-3" style="margin-bottom:1.5vw">
+          Une alternative<br/>au <em>spend-and-scale</em> américain.
+        </h2>
+        <p class="body reveal reveal-4" style="max-width:95%">
+          En juillet 2024, BNP Paribas a signé un partenariat pluri-annuel couvrant <strong>tous les modèles Mistral</strong>,
+          étendu à l'ensemble du groupe. La logique n'est pas celle de la course aux paramètres : c'est une stratégie
+          de <strong>souveraineté des données, proportionnalité des modèles, contrôle du cycle de vie</strong>.
+        </p>
+        <p class="body reveal reveal-5" style="max-width:95%;margin-top:1vw;color:var(--grey-60)">
+          Résultat visible : une centaine de cas d'usage, un assistant client 24/7, et une cible de
+          <strong>500 M€ de revenus liés à l'IA en 2025</strong>. Un modèle directement transposable pour un investisseur
+          institutionnel public qui ne peut pas envoyer ses données dans un cloud non européen.
+        </p>
+        <button class="btn-deep reveal reveal-6" data-modal="m-bnp">
+          Voir le détail du cas
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="case-right">
+        <div class="case-stat reveal reveal-4">
+          <div class="cs-n"><em>100</em>+</div>
+          <div class="cs-l"><strong>cas d'usage en production</strong>, assistant client 24/7 inclus.</div>
+        </div>
+        <div class="case-stat reveal reveal-5">
+          <div class="cs-n"><em>500</em>M€</div>
+          <div class="cs-l"><strong>objectif de revenus liés à l'IA</strong> d'ici fin 2025.</div>
+        </div>
+        <div class="case-stat reveal reveal-6">
+          <div class="cs-n">∀ métier</div>
+          <div class="cs-l">Partenariat Mistral <strong>étendu à toutes les lignes</strong> — asset management inclus.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================= -->
+  <!-- SLIDE 11 — Agents autonomes                         -->
+  <!-- ================================================= -->
+  <section class="slide" id="s_agents" data-title="Agents">
+    <div class="eyebrow reveal reveal-1">La frontière 2026</div>
+    <div class="grid">
+      <div>
+        <h2 class="title reveal reveal-2">Les agents<br/>autonomes.<br/><em>Déjà là.</em></h2>
+        <p class="body reveal reveal-3" style="margin-top:1.5vw;max-width:90%">
+          En 2025, BNY a structuré la notion de <strong>"digital employees"</strong> — des agents avec identité,
+          droits d'accès et workflows dédiés. Eliza 2.0 orchestre une dizaine d'agents qui négocient entre eux pour
+          produire une recommandation.
+        </p>
+        <p class="body reveal reveal-4" style="margin-top:1vw;max-width:90%;color:var(--grey-60)">
+          Citi GPS résume l'étape : <em>"la question n'est plus d'adopter l'IA, mais comment l'intégrer de façon
+          transparente, contrôlée par le risque."</em> Une écologie de fournisseurs spécialisés se structure autour :
+          <strong>Rogo</strong> (ex-banquiers d'affaires), <strong>Hebbia</strong> (agent swarm), <strong>AlphaSense</strong> (80% des top asset managers).
+        </p>
+      </div>
+      <div>
+        <div class="agent-wave">
+          <div class="agent-row reveal reveal-3">
+            <div class="yr">2023</div>
+            <div class="agent-bar"><span style="width:6%"></span></div>
+          </div>
+          <div class="agent-row reveal reveal-4">
+            <div class="yr">2025</div>
+            <div class="agent-bar"><span style="width:17%;"></span><div class="pct" style="left:19%;right:auto;color:var(--ink)">17% de la valeur IA</div></div>
+          </div>
+          <div class="agent-row reveal reveal-5">
+            <div class="yr">2028<span style="color:var(--grey-40)">(p)</span></div>
+            <div class="agent-bar"><span style="width:29%;background:var(--green-deep)"></span><div class="pct" style="left:31%;right:auto;color:var(--ink)">29% de la valeur IA</div></div>
+          </div>
+        </div>
+        <p class="small reveal reveal-6" style="margin-top:1.5vw;font-family:var(--mono);color:var(--grey-60)">
+          Part de la valeur créée par l'IA attribuable à des agents autonomes.<br/>Source : BCG, "Closing the AI Impact Gap", 2025.
+        </p>
+        <div style="margin-top:2vw;padding:1.5vw;background:var(--grey-05);border-left:3px solid var(--green)" class="reveal reveal-6">
+          <p style="font-family:var(--serif);font-size:1.3vw;line-height:1.25;color:var(--ink)">
+            <em>"Un tiers des 5% de firmes leaders utilisent déjà des agents autonomes.<br/>
+            Seulement 12% des adoptants classiques."</em>
+          </p>
+          <p class="small" style="margin-top:.8vw;font-family:var(--mono)">— BCG AI Radar, 2025</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================= -->
+  <!-- SLIDE 12 — Stack souveraine française               -->
+  <!-- ================================================= -->
+  <section class="slide" id="s_stack" data-title="Stack FR">
+    <div class="eyebrow reveal reveal-1">La souveraineté technique, concrètement</div>
+    <h2 class="title reveal reveal-2">Une stack française,<br/><em>déjà opérationnelle.</em></h2>
+    <p class="body reveal reveal-3" style="margin-bottom:2.5vw;color:var(--grey-60);max-width:80%">
+      En 24 mois, la France a bâti une pile complète — modèles, infrastructure, capital — dans laquelle la Caisse des Dépôts a joué un rôle structurant.
+    </p>
+    <div class="stack">
+      <div class="stack-col reveal reveal-3">
+        <div>
+          <div class="sc-lab">MODÈLES</div>
+          <div class="sc-t">Mistral AI</div>
+          <div class="sc-n">14 Md$</div>
+          <div class="sc-d">Valorisation en septembre 2025 après l'investissement d'ASML. Partenariats BNP Paribas, ministère des Armées (via AMIAD), Caisse des Dépôts.</div>
+        </div>
+      </div>
+      <div class="stack-col reveal reveal-4">
+        <div>
+          <div class="sc-lab">INFRASTRUCTURE</div>
+          <div class="sc-t">Campus IA, Fouju</div>
+          <div class="sc-n">240 <span style="font-size:.6em">→</span> 1 400 MW</div>
+          <div class="sc-d">Co-financé par MGX, Bpifrance, Mistral, Nvidia. 240 MW d'ici fin 2027, jusqu'à 1 400 MW à terme.</div>
+        </div>
+      </div>
+      <div class="stack-col reveal reveal-5">
+        <div>
+          <div class="sc-lab">CAPITAL</div>
+          <div class="sc-t">CDC Horizon Numérique 2030</div>
+          <div class="sc-n">18 Md€</div>
+          <div class="sc-d">Plan mobilisé par la CDC pour l'IA et les infrastructures souveraines. Bpifrance : 220 M€ en capital-développement IA en 2025 vs 17 M€ un an plus tôt.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================= -->
+  <!-- SLIDE 13 — Régulation                               -->
+  <!-- ================================================= -->
+  <section class="slide" id="s_reg" data-title="Régulation">
+    <div class="eyebrow reveal reveal-1">Le cadre régulatoire se densifie</div>
+    <h2 class="title reveal reveal-2">Le régulateur<br/>n'est <em>pas en retard.</em></h2>
+    <p class="body reveal reveal-3" style="max-width:75%;color:var(--grey-60)">
+      Pour une fois, les garde-fous arrivent en même temps que la technologie. Ce qui est à la fois une contrainte et une clarté stratégique.
+    </p>
+    <div class="reg-ribbon">
+      <div class="reg-stop done reveal reveal-3">
+        <div class="rs-d">18 mars 2024</div>
+        <div class="rs-t">Premières actions anti-« AI washing »</div>
+        <div class="rs-b">La SEC sanctionne Delphia (225 k$) et Global Predictions (175 k$) pour déclarations fausses sur l'usage de ML. Gary Gensler file l'analogie avec le greenwashing.</div>
+        <div class="rs-src">SEC.gov, 2024</div>
+      </div>
+      <div class="reg-stop done reveal reveal-4">
+        <div class="rs-d">1ᵉʳ août 2024</div>
+        <div class="rs-t">Entrée en vigueur de l'AI Act</div>
+        <div class="rs-b">Règlement européen adopté le 13 juin 2024. Classe en "haut risque" la scoring crédit personnes physiques et la tarification santé/vie.</div>
+        <div class="rs-src">Commission européenne</div>
+      </div>
+      <div class="reg-stop done reveal reveal-5">
+        <div class="rs-d">Janvier 2025</div>
+        <div class="rs-t">Guide AFG — IA responsable</div>
+        <div class="rs-b">"Principes et bonnes pratiques pour une utilisation responsable de l'IA par les sociétés de gestion". Fiche cybersécurité dédiée en décembre 2025.</div>
+        <div class="rs-src">AFG · Citywire</div>
+      </div>
+      <div class="reg-stop now reveal reveal-6">
+        <div class="rs-d">2 août 2026 — proche</div>
+        <div class="rs-t">Pleine application AI Act</div>
+        <div class="rs-b">L'ACPR, désignée autorité de surveillance du marché, fait de l'IA une priorité 2026. Méthodologie d'audit autour de l'équité et de l'explicabilité.</div>
+        <div class="rs-src">ACPR · Banque de France</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================= -->
+  <!-- SLIDE 14 — Angles morts                             -->
+  <!-- ================================================= -->
+  <section class="slide" id="s_risks" data-title="Angles morts">
+    <div class="eyebrow reveal reveal-1">Les trois angles morts</div>
+    <h2 class="title reveal reveal-2">Ce qui <em>ne marche pas</em><br/>— et pourquoi.</h2>
+    <p class="body reveal reveal-3" style="margin-bottom:2vw;color:var(--grey-60);max-width:75%">
+      Trois fragilités dominent, qu'un dirigeant doit pouvoir nommer avant d'autoriser un déploiement.
+    </p>
+    <div class="risk-grid">
+      <div class="risk reveal reveal-3">
+        <div class="rnum">01</div>
+        <div class="rt">L'adoption n'est pas la valeur.</div>
+        <div class="rb">78% des firmes utilisent l'IA. Mais <strong>plus de 80% ne voient pas d'impact sur l'EBIT</strong>, et moins de 20% suivent un KPI dédié. La concentration des cas d'usage chez les leaders (3,5 en moyenne vs 6,1) est le premier facteur différenciant.</div>
+        <div class="rdata">80% <strong>sans impact EBIT</strong> · McKinsey 2025</div>
+      </div>
+      <div class="risk reveal reveal-4">
+        <div class="rnum">02</div>
+        <div class="rt">Les données financières résistent.</div>
+        <div class="rb">Un dataset d'actions globales sur 30 ans ne contient que <strong>3,6 millions d'observations mensuelles</strong>. Plusieurs ordres de grandeur en dessous des corpus d'entraînement des LLM. Signal-bruit faible, non-stationnarité, surapprentissage : les approches naïves sont disqualifiées.</div>
+        <div class="rdata">3,6M obs. <strong>vs corpus LLM massifs</strong> · AXA IM</div>
+      </div>
+      <div class="risk reveal reveal-5">
+        <div class="rnum">03</div>
+        <div class="rt">Le risque est devenu systémique.</div>
+        <div class="rb">Le FMI alerte sur les <strong>"oligopoles de données"</strong> : une poignée d'acteurs développent des modèles supérieurs grâce à des données propriétaires, ce qui renforce la concentration du marché. Comportement de troupeau, procyclicité, crashes éclair : le logiciel classique de supervision prudentielle reste à réinventer.</div>
+        <div class="rdata"><strong>Oligopoles de données</strong> · FMI GFSR 2024</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================= -->
+  <!-- SLIDE 15 — Ce que cela implique pour la CDC         -->
+  <!-- ================================================= -->
+  <section class="slide" id="s_cdc" data-title="CDC">
+    <div class="eyebrow reveal reveal-1">Pour la Direction des Gestions d'Actifs</div>
+    <h2 class="title reveal reveal-2">Quatre leviers<br/><em>actionnables.</em></h2>
+    <p class="body reveal reveal-3" style="margin-bottom:2vw;color:var(--grey-60);max-width:75%">
+      Transposés à la réalité d'un investisseur institutionnel public : mandats de long terme, données propriétaires riches, obligation de traçabilité, cohabitation équipes internes + délégataires.
+    </p>
+    <div class="cdc-grid">
+      <div class="lever reveal reveal-3">
+        <div class="lv-n">LEVIER 01 · FRONT</div>
+        <div class="lv-t">Assistant de recherche sur base documentaire CDC.</div>
+        <div class="lv-b">Indexation des notes d'analyse, des comités, des études sectorielles. Point d'entrée unique pour les gérants. Modèle inspiré de BlackRock Asimov, adapté à un environnement souverain (Mistral on-premise).</div>
+        <div class="lv-src">Analogie : BlackRock · AXA IM</div>
+      </div>
+      <div class="lever reveal reveal-4">
+        <div class="lv-n">LEVIER 02 · MIDDLE</div>
+        <div class="lv-t">Scoring risque dynamique et détection d'anomalies NAV.</div>
+        <div class="lv-b">Remplacement de règles rigides par un score continu, explicable et auditable. Applicable aux contrôles pré-trade, à la conformité portefeuilles, et au contrôle NAV des fonds dédiés.</div>
+        <div class="lv-src">Analogie : HSBC Dynamic Risk Assessment</div>
+      </div>
+      <div class="lever reveal reveal-5">
+        <div class="lv-n">LEVIER 03 · BACK</div>
+        <div class="lv-t">Automatisation des tâches documentaires récurrentes.</div>
+        <div class="lv-b">Revue contractuelle, corporate actions, réconciliations inter-dépositaires, prospectus UCITS. Gain type documenté : 4h → 1h par dossier. ROI mesurable en trimestres, pas en années.</div>
+        <div class="lv-src">Analogie : BNY Eliza · JPMorgan</div>
+      </div>
+      <div class="lever reveal reveal-6">
+        <div class="lv-n">LEVIER 04 · GOUVERNANCE</div>
+        <div class="lv-t">Cadre de déploiement AI Act + doctrine AFG.</div>
+        <div class="lv-b">Anticiper la pleine application du 2 août 2026. Cartographie des usages "haut risque", registre, évaluations de conformité, supervision humaine. Condition du passage à l'échelle.</div>
+        <div class="lv-src">Référence : AFG guide 2025 · ACPR</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================= -->
+  <!-- SLIDE 16 — SYNTHÈSE / QUESTION FINALE               -->
+  <!-- ================================================= -->
+  <section class="slide" id="s_final" data-title="Synthèse">
+    <div class="eyebrow reveal reveal-1">En synthèse</div>
+    <div class="grid">
+      <div>
+        <p class="q reveal reveal-2">
+          Êtes-vous parmi<br/>les <em>5%</em> de leaders<br/>ou dans les <em>80%</em><br/>sans impact EBIT ?
+        </p>
+        <p class="body reveal reveal-3" style="margin-top:2vw;max-width:95%;color:var(--grey-60)">
+          La question n'est plus <em>si</em>, mais <em>comment</em>. Et la fenêtre pour bâtir une avance structurelle se referme avec l'entrée en vigueur de l'AI Act le 2 août 2026.
+        </p>
+      </div>
+      <div>
+        <div class="duet">
+          <div class="duet-col bad reveal reveal-4">
+            <div class="dl">AVANT 2024</div>
+            <div class="dn">1 pilote<br/>/ 18 mois</div>
+            <div class="db">Preuves de concept dispersées, tableur Excel d'indicateurs, ROI incertain, consommation de temps IT supérieure aux gains.</div>
+          </div>
+          <div class="duet-col good reveal reveal-5">
+            <div class="dl">APRÈS 2024</div>
+            <div class="dn">125 cas<br/>/ quelques semaines</div>
+            <div class="db">Plateforme centralisée, builders distribués, ROI documenté par cas, gouvernance proportionnelle, cycles de livraison trimestriels.</div>
+          </div>
+        </div>
+        <div style="margin-top:2.5vw;padding-top:2vw;border-top:1px solid var(--ink)" class="reveal reveal-6">
+          <p style="font-family:var(--sans);font-weight:600;font-size:.85vw;letter-spacing:.15em;text-transform:uppercase;color:var(--green-deep);margin-bottom:.6vw">
+            Prochaine étape proposée
+          </p>
+          <p style="font-family:var(--serif);font-size:1.8vw;line-height:1.15;color:var(--ink);letter-spacing:-.01em">
+            Atelier de 2 heures — cartographier 5 cas d'usage prioritaires pour la DGA, avec estimation ROI et cadrage AI Act.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div> <!-- /.stage -->
+
+<!-- ================================================= -->
+<!-- MODAL — drill-down                                  -->
+<!-- ================================================= -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal">
+    <button class="modal-close" id="modalClose" aria-label="Fermer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M6 18L18 6"/></svg>
+    </button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+  /* ============================================================
+     NAVIGATION
+     ============================================================ */
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let idx = 0;
+
+  // Update total counter
+  document.querySelector('.pagenum .total').textContent = '/ ' + String(total).padStart(2,'0');
+
+  // Nav dots
+  const navdots = document.getElementById('navdots');
+  slides.forEach((s,i)=>{
+    const b = document.createElement('button');
+    b.setAttribute('aria-label', 'Aller à la diapositive ' + (i+1) + ' — ' + (s.dataset.title||''));
+    b.addEventListener('click', ()=> go(i));
+    navdots.appendChild(b);
+  });
+  const dots = Array.from(navdots.children);
+
+  function go(i){
+    if(i<0) i=0; if(i>=total) i=total-1;
+    slides[idx].classList.remove('active');
+    dots[idx].classList.remove('active');
+    idx=i;
+    slides[idx].classList.add('active');
+    dots[idx].classList.add('active');
+    document.querySelector('.pagenum .cur').textContent = String(idx+1).padStart(2,'0');
+    document.getElementById('progBar').style.width = ((idx+1)/total*100)+'%';
+  }
+
+  document.getElementById('prev').addEventListener('click', ()=> go(idx-1));
+  document.getElementById('next').addEventListener('click', ()=> go(idx+1));
+
+  // Keyboard
+  document.addEventListener('keydown', (e)=>{
+    if(document.getElementById('modalOverlay').classList.contains('open')){
+      if(e.key==='Escape') closeModal();
+      return;
+    }
+    if(e.key==='ArrowRight' || e.key===' ' || e.key==='PageDown') { go(idx+1); e.preventDefault(); }
+    else if(e.key==='ArrowLeft' || e.key==='PageUp') { go(idx-1); e.preventDefault(); }
+    else if(e.key==='Home') go(0);
+    else if(e.key==='End') go(total-1);
+    else if(/^[0-9]$/.test(e.key)){
+      const n = parseInt(e.key,10);
+      if(n>0 && n<=total) go(n-1);
+    }
+  });
+
+  // init
+  dots[0].classList.add('active');
+  document.getElementById('progBar').style.width = (1/total*100)+'%';
+
+  /* ============================================================
+     MODAL — drill-down content
+     ============================================================ */
+  const modalContents = {
+    'm-nbim': {
+      eye: 'Détail · NBIM (Norges Bank Investment Management)',
+      title: "L'Investment Simulator, ou le miroir algorithmique des gérants.",
+      lede: "Un fonds souverain de 2 200 milliards de dollars qui utilise l'IA non pour trader, mais pour identifier les angles morts de ses propres décisions.",
+      body: `
+        <p class="m-body">NBIM, gestionnaire du fonds souverain norvégien, a mis en production en 2024-2025 une plateforme interne baptisée <strong>Investment Simulator</strong>. Elle retraite l'historique complet des décisions prises par les gérants — internes et délégataires externes — en testant chacune contre des contrefactuels simulés.</p>
+        <p class="m-body">L'objectif est comportemental : détecter les <strong>biais individuels de chaque gérant</strong> (market timing, taille de position, comportement en drawdown, home bias, biais sectoriels). L'IA produit pour chacun une "fiche de biais" qui alimente le dialogue manager-gérant.</p>
+        <p class="m-body">Deux applications en découlent. D'abord une <strong>recalibration des allocations</strong> : les gérants aux biais favorables (bon timing, discipline en drawdown) voient leurs positions taille plus grand. Les autres voient l'inverse. Ensuite une <strong>réduction des coûts d'exécution</strong> grâce à une meilleure compréhension des patterns de trading.</p>
+        <div class="m-stats">
+          <div class="m-stat"><div class="ms-n">213 000 h</div><div class="ms-l">économisées par an sur l'ensemble des opérations</div></div>
+          <div class="m-stat"><div class="ms-n">100 M$</div><div class="ms-l">de coûts de trading évités annuellement (revendiqués)</div></div>
+          <div class="m-stat"><div class="ms-n">400 M$</div><div class="ms-l">cible d'économies à horizon complet du programme</div></div>
+        </div>
+        <p class="m-body"><strong>Pourquoi c'est pertinent pour la CDC :</strong> NBIM partage avec la DGA plusieurs traits structurels — horizon long, mandat d'intérêt général, mix équipes internes / délégataires externes, obligation de traçabilité. Le modèle d'usage est directement transposable, à condition d'avoir l'historique de décisions exploitable.</p>
+        <p class="m-src">Sources : NBIM, Top1000funds ("Inside NBIM's AI playbook"), IPE, 2025.</p>
+      `
+    },
+    'm-hsbc': {
+      eye: 'Détail · HSBC × Google Cloud AML AI',
+      title: "La lutte anti-blanchiment à l'échelle : un milliard de transactions par mois.",
+      lede: "Du système de règles hérité des années 1990 au score de risque dynamique — et ses conséquences sur l'organisation de la conformité.",
+      body: `
+        <p class="m-body">Jusque dans les années 2020, la surveillance AML reposait sur des <strong>règles statiques</strong> (ex : toute transaction supérieure à X montant, vers Y zone géographique, déclenche une alerte). Résultat : jusqu'à 95% de faux positifs dans certaines banques, des armées d'analystes consommés à enquêter sur des dossiers sans intérêt.</p>
+        <p class="m-body">HSBC a co-développé avec Google Cloud la plateforme <strong>Dynamic Risk Assessment</strong>, opérationnelle depuis 2021 puis commercialisée comme AML AI en juin 2023. La logique est inverse : un score de risque <strong>continu, calibré sur le comportement réel des transactions suspectes passées</strong>, explicable par les features qui ont contribué au signal.</p>
+        <p class="m-body">Le changement organisationnel est aussi important que le changement technique : les équipes conformité passent de <strong>l'investigation de volume à l'investigation de qualité</strong>. Les dossiers remontés sont moins nombreux mais mieux ciblés.</p>
+        <div class="m-stats">
+          <div class="m-stat"><div class="ms-n">1 Md</div><div class="ms-l">transactions analysées par mois, temps quasi réel</div></div>
+          <div class="m-stat"><div class="ms-n">2-4×</div><div class="ms-l">plus d'activités suspectes détectées vs règles</div></div>
+          <div class="m-stat"><div class="ms-n">−60%</div><div class="ms-l">de faux positifs — c'est le vrai gain opérationnel</div></div>
+        </div>
+        <p class="m-body"><strong>Pourquoi c'est pertinent pour la DGA :</strong> la logique est transposable au <strong>contrôle NAV des fonds dédiés</strong> et au <strong>contrôle de conformité pré-trade</strong>. Les mêmes ingrédients s'y retrouvent : volumes massifs, règles hétérogènes, exigence de traçabilité et d'explicabilité. C'est précisément là que l'AI Act impose un encadrement renforcé.</p>
+        <p class="m-src">Sources : Google Cloud, Celent Model Risk Manager of the Year 2023, HSBC Annual Report.</p>
+      `
+    },
+    'm-bny': {
+      eye: 'Détail · BNY Mellon — Plateforme Eliza',
+      title: "De la banque dépositaire à l'éditeur de logiciels internes.",
+      lede: "BNY a industrialisé la création d'assistants IA par les collaborateurs eux-mêmes. Le gain ne vient pas d'un seul cas d'usage : il vient du nombre.",
+      body: `
+        <p class="m-body">La clé du modèle BNY est architecturale : au lieu de laisser l'IT développer chaque cas d'usage, une <strong>plateforme unifiée ("Eliza")</strong> expose aux collaborateurs des briques standardisées — accès aux données, conformité, sécurité, LLM interfacés. Chaque métier peut alors construire son propre assistant en quelques jours.</p>
+        <p class="m-body">Le CEO Robin Vince a imposé une logique <strong>"hub and spoke"</strong> : un noyau central qui garantit la gouvernance, des "spokes" dans chaque métier qui produisent les cas d'usage. Les délais de développement sont passés de 18 mois à quelques semaines.</p>
+        <p class="m-body">Le cas archétypal est la <strong>revue contractuelle</strong> : un assistant qui extrait clauses, obligations et échéances d'un contrat. Le temps de traitement passe de 4 heures à 1 heure par contrat. Sur 3 000 contrats par an, c'est 9 000 heures rendues aux juristes — sans licenciement, redéployées sur des tâches à plus haute valeur.</p>
+        <div class="m-stats">
+          <div class="m-stat"><div class="ms-n">125+</div><div class="ms-l">cas d'usage en production fin 2025</div></div>
+          <div class="m-stat"><div class="ms-n">20 000</div><div class="ms-l">"builders" — collaborateurs ayant créé un assistant</div></div>
+          <div class="m-stat"><div class="ms-n">98%</div><div class="ms-l">de la force de travail formée à l'IA générative</div></div>
+        </div>
+        <p class="m-body"><strong>Pourquoi c'est pertinent pour la DGA :</strong> le modèle est l'antidote à la fragmentation qui guette tous les pilotes IA. Plutôt que 10 projets isolés qui finiront abandonnés, une plateforme unique + une culture de builder distribuée. L'investissement initial est plus lourd, mais le retour d'échelle est exponentiel.</p>
+        <p class="m-src">Sources : OpenAI case study, VentureBeat, Fortune, FinancialContent (2024-2026).</p>
+      `
+    },
+    'm-manahl': {
+      eye: 'Détail · Man Group AHL & Bridgewater',
+      title: "Du ML défensif (depuis 2014) au ML offensif (depuis 2025).",
+      lede: "Dix ans de machine learning en production, puis un basculement en 2025 : le ML passe de l'amélioration de la recherche à la génération directe d'alpha.",
+      body: `
+        <p class="m-body">Man AHL, branche quant de Man Group, a mis en production son premier modèle de machine learning en 2014 — à une époque où la plupart des hedge funds n'osaient pas. La maison a accumulé dix ans d'expérience MLOps, de gestion de risque modèle, de discipline d'exécution.</p>
+        <p class="m-body">L'ingrédient clé : <strong>1,5 milliard de ticks de marché ingérés par jour</strong>, combinés à des sources alternatives (images satellite, brevets, flux de nouvelles). Le ML est utilisé pour l'<strong>augmentation de données</strong> (générer des scénarios synthétiques pour tester la robustesse), le <strong>feature engineering</strong> (détecter des patterns qu'un humain ne verrait pas) et la <strong>construction de portefeuille</strong>.</p>
+        <p class="m-body">Le pivot de 2025 : le partenariat avec Anthropic étend l'IA <strong>au-delà de l'efficacité, vers la génération d'alpha directe</strong>. Les LLMs lisent des millions de documents (rapports d'entreprises, transcriptions, presse spécialisée) et extraient des signaux que les modèles quantitatifs classiques ne captaient pas.</p>
+        <p class="m-body">En parallèle, Bridgewater — maison traditionnellement rétive à la boîte noire — a formalisé son <strong>Artificial Investment Associate (AIA)</strong>, un gérant synthétique qui combine macro, signaux de marché et narratifs. Un signal culturel fort : les fonds les plus défiants envers l'IA l'intègrent désormais au cœur de l'investissement.</p>
+        <p class="m-body"><strong>Pourquoi c'est pertinent pour la DGA :</strong> peu de sens de dupliquer un Man AHL en interne. Mais la <strong>sélection de gérants externes</strong> doit désormais intégrer une évaluation rigoureuse de leur maturité IA — quelle infrastructure, quelle gouvernance modèle, quelle capacité à expliquer leurs signaux. C'est un critère de due diligence qui manquait il y a 18 mois.</p>
+        <p class="m-src">Sources : Man Group Insights, Pensions & Investments, Anthropic partnership announcement (2025).</p>
+      `
+    },
+    'm-bnp': {
+      eye: 'Détail · BNP Paribas × Mistral AI',
+      title: "L'alternative européenne à la course aux paramètres.",
+      lede: "En juillet 2024, BNP Paribas a signé avec Mistral un partenariat qui couvre tous les modèles — une stratégie de souveraineté, de proportionnalité et de contrôle du cycle de vie.",
+      body: `
+        <p class="m-body">Le partenariat, annoncé en juillet 2024, couvre <strong>l'ensemble des modèles Mistral</strong> (généralistes, code, fonctions métiers) et s'étend progressivement à toutes les lignes métiers du groupe : banque de détail, CIB, asset management via BNP Paribas AM, Securities Services, assurance via Cardif.</p>
+        <p class="m-body">La doctrine qui sous-tend ce choix n'est pas la course aux paramètres (Mistral Large reste inférieur aux frontier models américains sur certains benchmarks) mais une équation en trois volets : <strong>souveraineté des données</strong> (les modèles peuvent tourner sur infra européenne ou on-premise), <strong>proportionnalité</strong> (choisir le modèle adapté à la tâche — Mistral Small suffit pour 80% des cas), <strong>contrôle du cycle de vie</strong> (fine-tuning sur données maison, MLOps maîtrisé).</p>
+        <p class="m-body">Les résultats visibles à mi-2025 : plus de <strong>100 cas d'usage en production</strong>, un assistant client 24/7 de bout en bout, un objectif de <strong>500 M€ de revenus liés à l'IA</strong> d'ici fin 2025. Le groupe revendique une "nouvelle dimension" pour l'IA.</p>
+        <div class="m-stats">
+          <div class="m-stat"><div class="ms-n">100+</div><div class="ms-l">cas d'usage en production tous métiers</div></div>
+          <div class="m-stat"><div class="ms-n">500 M€</div><div class="ms-l">objectif de revenus IA fin 2025</div></div>
+          <div class="m-stat"><div class="ms-n">∀ métier</div><div class="ms-l">partenariat étendu à toutes les lignes</div></div>
+        </div>
+        <p class="m-body"><strong>Pourquoi c'est pertinent pour la DGA :</strong> le modèle BNP est directement transposable pour un investisseur institutionnel public. Les contraintes de souveraineté des données propriétaires, de supervision ACPR, et de proportionnalité budgétaire s'appliquent identiquement. Mistral, dans lequel la CDC a investi, fournit la brique modèle avec une empreinte souveraine intégrée.</p>
+        <p class="m-src">Sources : BNP Paribas press release juillet 2024, Maddyness, Financial IT, Klover.</p>
+      `
+    }
+  };
+
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalContent = document.getElementById('modalContent');
+
+  function openModal(key){
+    const c = modalContents[key];
+    if(!c) return;
+    modalContent.innerHTML = `
+      <div class="m-eye">${c.eye}</div>
+      <h3>${c.title}</h3>
+      <p class="m-lede">${c.lede}</p>
+      ${c.body}
+    `;
+    modalOverlay.classList.add('open');
+  }
+  function closeModal(){
+    modalOverlay.classList.remove('open');
+  }
+
+  document.querySelectorAll('[data-modal]').forEach(el=>{
+    el.addEventListener('click',(e)=>{
+      openModal(el.dataset.modal);
+    });
+  });
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click',(e)=>{ if(e.target===modalOverlay) closeModal(); });
+
+</script>
+</body>
+</html>
